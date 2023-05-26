@@ -52,7 +52,7 @@ float readFloat(FILE* _File) {
   return littleEndianToFloat(lengthBytes);
 }
 
-int readTag(uint8_t _Type, void* _Out, FILE* _File) {
+int readTag(TagType _Type, void* _Out, FILE* _File) {
   switch (_Type) {
   case TagType::Byte: {
     // read Byte

@@ -9,4 +9,4 @@ int readInt(FILE* _File);
 long readLong(FILE* _File);
 float readFloat(FILE* _File);
 
-int readTag(uint8_t _Type, void* _Out, FILE* _File);
+int readTag(TagType _Type, void* _Out, FILE* _File);
