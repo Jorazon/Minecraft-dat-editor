@@ -133,7 +133,7 @@ public:
 
 #pragma endregion
 
-short littleEndianToShort(const uint8_t* _Bytes);
-int littleEndianToInt(const uint8_t* _Bytes);
-long littleEndianToLong(const uint8_t* _Bytes);
-float littleEndianToFloat(const uint8_t* _Bytes);
+extern short littleEndianToShort(const uint8_t* _Bytes);
+extern int littleEndianToInt(const uint8_t* _Bytes);
+extern long littleEndianToLong(const uint8_t* _Bytes);
+extern float littleEndianToFloat(const uint8_t* _Bytes);
