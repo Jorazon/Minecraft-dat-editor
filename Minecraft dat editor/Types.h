@@ -1,7 +1,5 @@
 #pragma once
-#include <cstdint>
-#include <cstdio>
-#include <cstdlib>
+#include <cstddef>
 #include <string>
 #include <vector>
 
@@ -22,23 +20,24 @@ enum class TagType : uint8_t {
   LongArray = 0x0C
 };
 
+#pragma region TagTypeClasses
+
 #pragma region BaseTypes
 
 class Tag {
 public:
-  const TagType type;
+  const TagType type = TagType::Invalid;
 protected:
-  Tag() : type(TagType::Invalid) {};
+  Tag() {};
   Tag(const Tag&) = delete;
   Tag& operator =(Tag&) = delete;
 };
 
 class NamedTag : public Tag {
 public:
-  uint16_t nameLength;
-  char* name;
+  std::string name;
 protected:
-  NamedTag(uint16_t _NameLength, char* _Name) : nameLength(_NameLength), name(_Name) {};
+  NamedTag(const std::string& _Name) : name(_Name) {};
 };
 
 #pragma endregion
@@ -48,44 +47,50 @@ protected:
 class TagByte : public NamedTag {
 public:
   const TagType type = TagType::Byte;
-  int8_t value;
+  uint8_t value;
+  TagByte(const std::string& _Name, const uint8_t& _Value) : value(_Value), NamedTag(_Name) {};
 };
 
 class TagShort : public NamedTag {
 public:
   const TagType type = TagType::Short;
   int16_t value;
+  TagShort(const std::string& _Name, const int16_t& _Value) : value(_Value), NamedTag(_Name) {};
 };
 
 class TagInt : public NamedTag {
 public:
   const TagType type = TagType::Int;
   int32_t value;
+  TagInt(const std::string& _Name, const int32_t& _Value) : value(_Value), NamedTag(_Name) {};
 };
 
 class TagLong : public NamedTag {
 public:
   const TagType type = TagType::Long;
   int64_t value;
+  TagLong(const std::string& _Name, const int64_t& _Value) : value(_Value), NamedTag(_Name) {};
 };
 
 class TagFloat : public NamedTag {
 public:
   const TagType type = TagType::Float;
   float value;
+  TagFloat(const std::string& _Name, const float& _Value) : value(_Value), NamedTag(_Name) {};
 };
 
 class TagDouble : public NamedTag {
 public:
   const TagType type = TagType::Double;
   double value;
+  TagDouble(const std::string& _Name, const double& _Value) : value(_Value), NamedTag(_Name) {};
 };
 
 class TagString : public NamedTag {
 public:
   const TagType type = TagType::String;
-  uint16_t stringLength;
-  char* value;
+  std::string value;
+  TagString(const std::string& _Name, const std::string& _Value) : value(_Value), NamedTag(_Name) {};
 };
 
 #pragma endregion
@@ -95,34 +100,33 @@ public:
 class TagByteArray : public NamedTag {
 public:
   const TagType type = TagType::ByteArray;
-  uint16_t arrayLength;
-  int8_t* value;
+  std::vector<int8_t> values;
+  TagByteArray(const std::string& _Name) : NamedTag(_Name) {};
 };
 
 class TagIntArray : public NamedTag {
 public:
   const TagType type = TagType::IntArray;
-  uint16_t arrayLength;
-  int32_t* value;
+  std::vector<int32_t> values;
+  TagIntArray(const std::string& _Name) : NamedTag(_Name) {};
 };
 
 class TagLongArray : public NamedTag {
 public:
   const TagType type = TagType::LongArray;
-  uint16_t arrayLength;
-  int64_t* value;
+  std::vector<int64_t> values;
+  TagLongArray(const std::string& _Name) : NamedTag(_Name) {};
 };
 
 #pragma endregion
 
 #pragma region ComplexTypes
 
-template <typename T>
 class TagList : public NamedTag {
 public:
   const TagType type = TagType::List;
   const TagType listType;
-  std::vector<T> entries;
+  std::vector<NamedTag> entries;
 };
 
 class TagCompoundStart : public NamedTag {
@@ -133,7 +137,10 @@ public:
 
 #pragma endregion
 
-extern short littleEndianToShort(const uint8_t* _Bytes);
-extern int littleEndianToInt(const uint8_t* _Bytes);
-extern long littleEndianToLong(const uint8_t* _Bytes);
-extern float littleEndianToFloat(const uint8_t* _Bytes);
+#pragma endregion
+
+extern short littleEndianToShort(const std::byte* _Bytes);
+extern int littleEndianToInt(const std::byte* _Bytes);
+extern long long littleEndianToLong(const std::byte* _Bytes);
+extern float littleEndianToFloat(const std::byte* _Bytes);
+extern double littleEndianToDouble(const std::byte* _Bytes);

@@ -3,62 +3,71 @@
 
 #include "TagReader.h"
 
-
-uint8_t readByte(FILE* _File) {
-  uint8_t byte;
-  fread(&byte, sizeof(uint8_t), 1, _File);
-  return byte;
+std::byte readByte(std::ifstream* _File) {
+  std::byte byte[1];
+  _File->read((char*) byte, 1);
+  return *byte;
 }
 
-short readShort(FILE* _File) {
-  uint8_t bytes[2];
-  fread(bytes, sizeof(uint8_t), 2, _File);
+short readShort(std::ifstream* _File) {
+  std::byte bytes[sizeof(short)];
+  _File->read((char*) bytes, sizeof(short));
   return littleEndianToShort(bytes);
 }
 
-const char* readString(FILE* _File) {
+std::string readString(std::ifstream* _File) {
   short nameLength = readShort(_File);
 
   char* name = (char*)malloc((nameLength + 1) * sizeof(char));
 
   if (name == NULL) {
     printf("Failed to allocate memory for the string.\n");
-    return NULL;
+    return "";
   }
 
   if (nameLength != 0) {
-    fread(name, sizeof(char), nameLength, _File);
+    _File->read((char*)name, nameLength);
   }
+
   name[nameLength] = '\0';
 
-  return name;
+  std::string nameStr(name);
+
+  free(name);
+
+  return nameStr;
 }
 
-int readInt(FILE* _File) {
-  uint8_t lengthBytes[4];
-  fread(lengthBytes, sizeof(uint8_t), 4, _File);
-  return littleEndianToInt(lengthBytes);
+int readInt(std::ifstream* _File) {
+  std::byte bytes[sizeof(int)];
+  _File->read((char*)bytes, sizeof(int));
+  return littleEndianToInt(bytes);
 }
 
-long readLong(FILE* _File) {
-  uint8_t lengthBytes[8];
-  fread(lengthBytes, sizeof(uint8_t), 8, _File);
-  return littleEndianToLong(lengthBytes);
+long long readLong(std::ifstream* _File) {
+  std::byte bytes[sizeof(long long)];
+  _File->read((char*)bytes, sizeof(long long));
+  return littleEndianToLong(bytes);
 }
 
-float readFloat(FILE* _File) {
-  uint8_t lengthBytes[4];
-  fread(lengthBytes, sizeof(uint8_t), 4, _File);
-  return littleEndianToFloat(lengthBytes);
+float readFloat(std::ifstream* _File) {
+  std::byte bytes[sizeof(float)];
+  _File->read((char*)bytes, sizeof(float));
+  return littleEndianToFloat(bytes);
 }
 
-int readTag(TagType _Type, void* _Out, FILE* _File) {
+double readDouble(std::ifstream* _File) {
+  std::byte bytes[sizeof(double)];
+  _File->read((char*)bytes, sizeof(double));
+  return littleEndianToDouble(bytes);
+}
+
+int readTag(TagType _Type, std::ifstream* _File) {
   switch (_Type) {
   case TagType::Byte: {
     // read Byte
-    uint8_t byte = readByte(_File);
+    std::byte byte = readByte(_File);
     printf("%X", byte);
-    _Out = &byte;
     return 1;
     break;
   }
@@ -66,15 +75,13 @@ int readTag(TagType _Type, void* _Out, FILE* _File) {
     // read Int
     int read = readInt(_File);
     printf("%i", read);
-    _Out = &read;
     return 1;
     break;
   }
   case TagType::Long: {
     // read Long
-    long read = readLong(_File);
+    long long read = readLong(_File);
     printf("%i", read);
-    _Out = &read;
     return 1;
     break;
   }
@@ -82,22 +89,14 @@ int readTag(TagType _Type, void* _Out, FILE* _File) {
     // read Float
     float read = readFloat(_File);
     printf("%f", read);
-    _Out = &read;
     return 1;
     break;
   }
   case TagType::String: {
     // read String
-    const char* str = readString(_File);
+    std::string str = readString(_File);
 
-    if (str == NULL) {
-      _Out = (void*) "Failed to allocate memory for the string.\n";
-      printf("%s", (const char*) _Out);
-      return 0;
-    }
-
-    printf("\"%s\"", str);
-    _Out = (char*) str;
+    printf("\"%s\"", str.c_str());
     return 1;
     break;
   }
@@ -105,28 +104,21 @@ int readTag(TagType _Type, void* _Out, FILE* _File) {
     // read List
     TagType listTypeByte = (TagType) readByte(_File);
     const int listLength = readInt(_File);
-    void** arr = (void**)malloc((listLength) * sizeof(void*));
-
-    if (arr == NULL) {
-      _Out = (void*) "Failed to allocate memory for the list.\n";
-      printf("%s", (const char*) _Out);
-      return 0;
-    }
 
     printf("\"");
     for (size_t i = 0; i < listLength; ++i) {
-      readTag(listTypeByte, arr[i], _File);
+      readTag(listTypeByte, _File);
       if (i < listLength - 1) {
         printf(".");
       }
     }
     printf("\"");
 
-    _Out = arr;
     return listLength;
     break;
   }
   default:
+    return 0;
     break;
   }
 }

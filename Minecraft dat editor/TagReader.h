@@ -1,12 +1,15 @@
 #pragma once
 
+#include <fstream>
+
 #include "Types.h"
 
-uint8_t readByte(FILE* _File);
-short readShort(FILE* _File);
-const char* readString(FILE* _File);
-int readInt(FILE* _File);
-long readLong(FILE* _File);
-float readFloat(FILE* _File);
+std::byte readByte(std::ifstream* _File);
+short readShort(std::ifstream* _File);
+std::string readString(std::ifstream* _File);
+int readInt(std::ifstream* _File);
+long long readLong(std::ifstream* _File);
+float readFloat(std::ifstream* _File);
+double readDouble(std::ifstream* _File);
 
-int readTag(TagType _Type, void* _Out, FILE* _File);
+int readTag(TagType _Type, std::ifstream* _File);

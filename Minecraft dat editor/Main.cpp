@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 
-
+#include <fstream>
 
 #include "TagReader.h"
 
@@ -11,30 +11,29 @@ void printIndent(int level) {
 }
 
 int main(void) {
-
   // open file
-  const char* filename = "level.dat";
+  std::string filename("level.dat");
 
-  FILE* file = fopen(filename, "rb");
+  std::ifstream file(filename, std::ios::binary);
   
-  if (file == NULL) {
-    printf("Failed to open file: %s\n", filename);
+  if (!file) {
+    printf("Failed to open file: %s\n", filename.c_str());
     return 1;
   }
 
   // read file header
-  int version = readInt(file);
+  int version = readInt(&file);
   
-  int length = readInt(file) + 8;
+  int length = readInt(&file) + 8;
 
   printf("Version: %i\nLength: %i\n\n", version, length);
   
   int indent = 0;
 
   // read file
-  while (ftell(file) < length) {
+  while (((int) file.tellg()) < length) {
     // read tag type
-    TagType typeByte = (TagType) readByte(file);
+    TagType typeByte = (TagType) readByte(&file);
 
     if (typeByte == TagType::CompoundEnd) {
       indent--;
@@ -44,16 +43,12 @@ int main(void) {
     }
     
     // read tag name
-    const char* name = readString(file);
-    if (name == NULL) {
-      fclose(file);
-      return 1;
-    }
+    std::string name = readString(&file);
 
     printIndent(indent);
 
     if (name[0] != '\0') {
-      printf("\"%s\":", name);
+      printf("\"%s\":", name.c_str());
     }
 
     if (typeByte == TagType::CompoundStart) {
@@ -61,9 +56,8 @@ int main(void) {
       indent++;
     }
 
-    void* value = nullptr;
     // read type
-    readTag(typeByte, value, file);
+    readTag(typeByte, &file);
 
     if (typeByte != TagType::CompoundStart) {
       printf(",");
@@ -71,6 +65,6 @@ int main(void) {
     printf("\n");
   }
 
-  fclose(file);
+  file.close();
   return 0;
 }
