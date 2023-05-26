@@ -5,8 +5,8 @@
 #include <string>
 #include <vector>
 
-enum class TagType : int8_t {
-  Invalid = -1,
+enum class TagType : uint8_t {
+  Invalid = 0xFF,
   CompoundEnd = 0x00,
   Byte = 0x01,
   Short = 0x02,
@@ -22,7 +22,7 @@ enum class TagType : int8_t {
   LongArray = 0x0C
 };
 
-short littleEndianToShort(const uint8_t* _Bytes);
-int littleEndianToInt(const uint8_t* _Bytes);
-long littleEndianToLong(const uint8_t* _Bytes);
-float littleEndianToFloat(const uint8_t* _Bytes);
+extern short littleEndianToShort(const uint8_t* _Bytes);
+extern int littleEndianToInt(const uint8_t* _Bytes);
+extern long littleEndianToLong(const uint8_t* _Bytes);
+extern float littleEndianToFloat(const uint8_t* _Bytes);

@@ -28,5 +28,3 @@ float littleEndianToFloat(const uint8_t* _Bytes) {
     ((uint32_t)_Bytes[1] << 8) | (uint32_t)_Bytes[0];
   return *(float*)&value;
 }
-
-

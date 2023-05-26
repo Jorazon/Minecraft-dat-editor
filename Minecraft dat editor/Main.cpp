@@ -34,9 +34,9 @@ int main(void) {
   // read file
   while (ftell(file) < length) {
     // read tag type
-    uint8_t typeByte = readByte(file);
+    TagType typeByte = (TagType) readByte(file);
 
-    if (typeByte == 0x00) {
+    if (typeByte == TagType::CompoundEnd) {
       indent--;
       printIndent(indent);
       printf("}\n");
@@ -56,7 +56,7 @@ int main(void) {
       printf("\"%s\":", name);
     }
 
-    if (typeByte == 0x0A) {
+    if (typeByte == TagType::CompoundStart) {
       printf("{");
       indent++;
     }
@@ -65,7 +65,7 @@ int main(void) {
     // read type
     readTag(typeByte, value, file);
 
-    if (typeByte != 0x0A) {
+    if (typeByte != TagType::CompoundStart) {
       printf(",");
     }
     printf("\n");

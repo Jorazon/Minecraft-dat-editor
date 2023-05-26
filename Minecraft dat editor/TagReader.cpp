@@ -103,7 +103,7 @@ int readTag(TagType _Type, void* _Out, FILE* _File) {
   }
   case TagType::List: {
     // read List
-    uint8_t listTypeByte = readByte(_File);
+    TagType listTypeByte = (TagType) readByte(_File);
     const int listLength = readInt(_File);
     void** arr = (void**)malloc((listLength) * sizeof(void*));
 
