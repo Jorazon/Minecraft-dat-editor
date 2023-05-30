@@ -80,8 +80,8 @@ int readTag(TagType _Type, std::ifstream* _File) {
   }
   case TagType::Long: {
     // read Long
-    long long read = readLong(_File);
-    printf("%i", read);
+    int64_t read = readLong(_File);
+    printf("%lld", read);
     return 1;
     break;
   }

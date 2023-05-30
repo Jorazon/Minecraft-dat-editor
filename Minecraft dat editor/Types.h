@@ -27,6 +27,7 @@ enum class TagType : uint8_t {
 class Tag {
 public:
   const TagType type = TagType::Invalid;
+  virtual std::vector<std::byte> valueToBytes() = 0;
 protected:
   Tag() {};
   Tag(const Tag&) = delete;
@@ -35,7 +36,10 @@ protected:
 
 class NamedTag : public Tag {
 public:
+  const TagType type = TagType::Invalid;
   std::string name;
+  std::vector<std::byte> nameToBytes();
+  std::vector<std::byte> toBytes();
 protected:
   NamedTag(const std::string& _Name) : name(_Name) {};
 };
@@ -47,8 +51,9 @@ protected:
 class TagByte : public NamedTag {
 public:
   const TagType type = TagType::Byte;
-  uint8_t value;
-  TagByte(const std::string& _Name, const uint8_t& _Value) : value(_Value), NamedTag(_Name) {};
+  std::byte value;
+  TagByte(const std::string& _Name, const std::byte& _Value) : value(_Value), NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagShort : public NamedTag {
@@ -56,6 +61,7 @@ public:
   const TagType type = TagType::Short;
   int16_t value;
   TagShort(const std::string& _Name, const int16_t& _Value) : value(_Value), NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagInt : public NamedTag {
@@ -63,6 +69,7 @@ public:
   const TagType type = TagType::Int;
   int32_t value;
   TagInt(const std::string& _Name, const int32_t& _Value) : value(_Value), NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagLong : public NamedTag {
@@ -70,6 +77,7 @@ public:
   const TagType type = TagType::Long;
   int64_t value;
   TagLong(const std::string& _Name, const int64_t& _Value) : value(_Value), NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagFloat : public NamedTag {
@@ -77,6 +85,7 @@ public:
   const TagType type = TagType::Float;
   float value;
   TagFloat(const std::string& _Name, const float& _Value) : value(_Value), NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagDouble : public NamedTag {
@@ -84,6 +93,7 @@ public:
   const TagType type = TagType::Double;
   double value;
   TagDouble(const std::string& _Name, const double& _Value) : value(_Value), NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagString : public NamedTag {
@@ -91,6 +101,7 @@ public:
   const TagType type = TagType::String;
   std::string value;
   TagString(const std::string& _Name, const std::string& _Value) : value(_Value), NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 #pragma endregion
@@ -102,6 +113,7 @@ public:
   const TagType type = TagType::ByteArray;
   std::vector<int8_t> values;
   TagByteArray(const std::string& _Name) : NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagIntArray : public NamedTag {
@@ -109,6 +121,7 @@ public:
   const TagType type = TagType::IntArray;
   std::vector<int32_t> values;
   TagIntArray(const std::string& _Name) : NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 class TagLongArray : public NamedTag {
@@ -116,31 +129,38 @@ public:
   const TagType type = TagType::LongArray;
   std::vector<int64_t> values;
   TagLongArray(const std::string& _Name) : NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
 };
 
 #pragma endregion
 
 #pragma region ComplexTypes
 
+
 class TagList : public NamedTag {
 public:
   const TagType type = TagType::List;
   const TagType listType;
-  std::vector<NamedTag> entries;
+  std::vector<Tag*> entries;
+  TagList(const std::string& _Name, TagType _EntryType) : NamedTag(_Name), listType(_EntryType) {};
+  std::vector<std::byte> valueToBytes();
 };
 
-class TagCompoundStart : public NamedTag {
+class TagCompound : public NamedTag {
 public:
   const TagType type = TagType::CompoundStart;
-  std::vector<NamedTag> tags;
+  std::vector<NamedTag*> tags;
+  TagCompound(const std::string& _Name) : NamedTag(_Name) {};
+  std::vector<std::byte> valueToBytes();
+  std::vector<std::byte> toBytes();
 };
 
 #pragma endregion
 
 #pragma endregion
 
-extern short littleEndianToShort(const std::byte* _Bytes);
-extern int littleEndianToInt(const std::byte* _Bytes);
-extern long long littleEndianToLong(const std::byte* _Bytes);
+extern int16_t littleEndianToShort(const std::byte* _Bytes);
+extern int32_t littleEndianToInt(const std::byte* _Bytes);
+extern int64_t littleEndianToLong(const std::byte* _Bytes);
 extern float littleEndianToFloat(const std::byte* _Bytes);
 extern double littleEndianToDouble(const std::byte* _Bytes);
