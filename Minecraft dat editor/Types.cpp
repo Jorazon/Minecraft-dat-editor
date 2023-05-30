@@ -37,8 +37,8 @@ std::vector<std::byte> NamedTag::nameToBytes() {
 
   bytes.push_back((std::byte)type);
 
-  int length = name.length();
-  int16_t length = littleEndianToShort((std::byte*) &length);
+  int16_t size = (int16_t)name.length();
+  int16_t length = littleEndianToShort((std::byte*) &size);
   for (size_t i = 0; i < sizeof(int16_t); ++i) {
     bytes.push_back((std::byte)((&length)[i] & 0xFF));
   }
@@ -126,7 +126,7 @@ std::vector<std::byte> TagString::valueToBytes() {
 std::vector<std::byte> TagByteArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int size = values.size();
+  int32_t size = (int32_t)values.size();
   int32_t length = littleEndianToInt((std::byte*)&size);
   for (size_t i = 0; i < sizeof(int32_t); ++i) {
     bytes.push_back((std::byte)((&length)[i] & 0xFF));
@@ -142,7 +142,7 @@ std::vector<std::byte> TagByteArray::valueToBytes() {
 std::vector<std::byte> TagIntArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int size = values.size();
+  int32_t size = (int32_t)values.size();
   int32_t length = littleEndianToInt((std::byte*)&size);
   for (size_t i = 0; i < sizeof(int32_t); ++i) {
     bytes.push_back((std::byte)((&length)[i] & 0xFF));
@@ -161,7 +161,7 @@ std::vector<std::byte> TagIntArray::valueToBytes() {
 std::vector<std::byte> TagLongArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int size = values.size();
+  int32_t size = (int32_t)values.size();
   int32_t length = littleEndianToInt((std::byte*)&size);
   for (size_t i = 0; i < sizeof(int32_t); ++i) {
     bytes.push_back((std::byte)((&length)[i] & 0xFF));
@@ -182,7 +182,7 @@ std::vector<std::byte> TagList::valueToBytes() {
 
   bytes.push_back((std::byte) listType);
 
-  int size = entries.size();
+  int32_t size = (int32_t)entries.size();
   int32_t length = littleEndianToInt((std::byte*)&size);
   for (size_t i = 0; i < sizeof(int32_t); ++i) {
     bytes.push_back((std::byte)((&length)[i] & 0xFF));
