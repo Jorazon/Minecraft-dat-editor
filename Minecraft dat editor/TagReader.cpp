@@ -122,9 +122,6 @@ NamedTag* readTag(TagType _Type, std::string _Name, std::ifstream* _File) {
     return new TagCompound(_Name);
     break;
   }
-  case TagType::CompoundEnd: {
-    break;
-  }
   case TagType::Double: {
     // read Double
     double read = readDouble(_File);
@@ -132,6 +129,7 @@ NamedTag* readTag(TagType _Type, std::string _Name, std::ifstream* _File) {
     return new TagDouble(_Name, read);
     break;
   }
+  case TagType::CompoundEnd:
   case TagType::ByteArray: 
   case TagType::IntArray:
   case TagType::LongArray: {
