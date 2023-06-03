@@ -62,34 +62,34 @@ double readDouble(std::ifstream* _File) {
   return littleEndianToDouble(bytes);
 }
 
-int readTag(TagType _Type, std::ifstream* _File) {
+NamedTag* readTag(TagType _Type, std::string _Name, std::ifstream* _File) {
   switch (_Type) {
   case TagType::Byte: {
     // read Byte
     std::byte byte = readByte(_File);
     printf("%X", byte);
-    return 1;
+    return new TagByte(_Name, byte);
     break;
   }
   case TagType::Int: {
     // read Int
     int read = readInt(_File);
     printf("%i", read);
-    return 1;
+    return new TagInt(_Name, read);
     break;
   }
   case TagType::Long: {
     // read Long
     int64_t read = readLong(_File);
     printf("%lld", read);
-    return 1;
+    return new TagLong(_Name, read);
     break;
   }
   case TagType::Float: {
     // read Float
     float read = readFloat(_File);
     printf("%f", read);
-    return 1;
+    return new TagFloat(_Name, read);
     break;
   }
   case TagType::String: {
@@ -97,28 +97,50 @@ int readTag(TagType _Type, std::ifstream* _File) {
     std::string str = readString(_File);
 
     printf("\"%s\"", str.c_str());
-    return 1;
+    return new TagString(_Name, str);
     break;
   }
   case TagType::List: {
     // read List
     TagType listTypeByte = (TagType) readByte(_File);
     const int listLength = readInt(_File);
-
+    TagList* list = new TagList(_Name, listTypeByte);
     printf("\"");
     for (size_t i = 0; i < listLength; ++i) {
-      readTag(listTypeByte, _File);
+      NamedTag* entry = readTag(listTypeByte, "ListItem", _File);
+      list->entries.push_back(entry);
       if (i < listLength - 1) {
         printf(".");
       }
     }
     printf("\"");
 
-    return listLength;
+    return list;
+    break;
+  }
+  case TagType::CompoundStart: {
+    return new TagCompound(_Name);
+    break;
+  }
+  case TagType::CompoundEnd: {
+    break;
+  }
+  case TagType::Double: {
+    // read Double
+    double read = readDouble(_File);
+    printf("%f", read);
+    return new TagDouble(_Name, read);
+    break;
+  }
+  case TagType::ByteArray: 
+  case TagType::IntArray:
+  case TagType::LongArray: {
+    printf("Not implemented");
+    return new NamedTag("Not implemented", _Type);
     break;
   }
   default:
-    return 0;
+    return new NamedTag("Error", _Type);
     break;
   }
 }

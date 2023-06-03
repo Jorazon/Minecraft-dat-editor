@@ -12,4 +12,4 @@ long long readLong(std::ifstream* _File);
 float readFloat(std::ifstream* _File);
 double readDouble(std::ifstream* _File);
 
-int readTag(TagType _Type, std::ifstream* _File);
+NamedTag* readTag(TagType _Type, std::string _Name, std::ifstream* _File);

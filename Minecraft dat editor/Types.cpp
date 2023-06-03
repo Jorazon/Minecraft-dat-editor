@@ -1,51 +1,108 @@
 #include "Types.h"
 
+#pragma region Punning
+
+union pun8
+{
+  uint8_t value;
+  std::byte bytes[sizeof(uint8_t)];
+  pun8(uint8_t _Value) : value(_Value) {};
+};
+
+union pun16
+{
+  uint16_t value;
+  std::byte bytes[sizeof(uint16_t)];
+  pun16(uint16_t _Value) : value(_Value) {};
+};
+
+union pun32
+{
+  uint32_t value;
+  std::byte bytes[sizeof(uint32_t)];
+  pun32(uint32_t _Value) : value(_Value) {};
+};
+
+union pun64
+{
+  uint64_t value;
+  std::byte bytes[sizeof(uint64_t)];
+  pun64(uint64_t _Value) : value(_Value) {};
+};
+
+union punFloat
+{
+  float value;
+  std::byte bytes[sizeof(float)];
+  punFloat(float _Value) : value(_Value) {};
+};
+
+union punDouble
+{
+  double value;
+  std::byte bytes[sizeof(double)];
+  punDouble(double _Value) : value(_Value) {};
+};
+
+#pragma endregion
+
+#pragma region FromLittle
+
 int16_t littleEndianToShort(const std::byte* _Bytes) {
-  uint16_t value =
-    ((uint16_t)_Bytes[1] << 8) | (uint16_t)_Bytes[0];
+  int16_t value = 0;
+  for (size_t i = 0; i < sizeof(int16_t); ++i) {
+    value += (int16_t)_Bytes[i] << 8 * i;
+  }
   return *(short*)&value;
 }
 
 int32_t littleEndianToInt(const std::byte* _Bytes) {
-  uint32_t value =
-    ((uint32_t)_Bytes[3] << 24) | ((uint32_t)_Bytes[2] << 16) |
-    ((uint32_t)_Bytes[1] << 8) | (uint32_t)_Bytes[0];
+  int32_t value = 0;
+  for (size_t i = 0; i < sizeof(int32_t); ++i) {
+    value += (int32_t)_Bytes[i] << 8 * i;
+  }
   return *(int*)&value;
 }
 
 int64_t littleEndianToLong(const std::byte* _Bytes) {
-  uint64_t value =
-    ((uint64_t)_Bytes[7] << 56) | ((uint64_t)_Bytes[6] << 48) |
-    ((uint64_t)_Bytes[5] << 40) | ((uint64_t)_Bytes[4] << 32) |
-    ((uint64_t)_Bytes[3] << 24) | ((uint64_t)_Bytes[2] << 16) |
-    ((uint64_t)_Bytes[1] << 8) | (uint64_t)_Bytes[0];
+  int64_t value = 0;
+  for (size_t i = 0; i < sizeof(int64_t); ++i) {
+    value += (int64_t)_Bytes[i] << 8 * i;
+  }
   return *(long long*)&value;
 }
 
 float littleEndianToFloat(const std::byte* _Bytes) {
-  uint32_t value = littleEndianToInt(_Bytes);
+  int32_t value = littleEndianToInt(_Bytes);
   return *(float*)&value;
 }
 
 double littleEndianToDouble(const std::byte* _Bytes) {
-  uint64_t value = littleEndianToLong(_Bytes);
+  int64_t value = littleEndianToLong(_Bytes);
   return *(double*)&value;
 }
+
+#pragma endregion
+
+#pragma region ToBytes
+
+std::vector<std::byte> Tag::valueToBytes() {
+  std::vector<std::byte> bytes;
+  bytes.push_back((std::byte)TagType::CompoundEnd);
+  return bytes;
+};
 
 std::vector<std::byte> NamedTag::nameToBytes() {
   std::vector<std::byte> bytes;
 
-  bytes.push_back((std::byte)type);
+  pun16 size(name.length());
 
-  int16_t size = (int16_t)name.length();
-  int16_t length = littleEndianToShort((std::byte*) &size);
-  for (size_t i = 0; i < sizeof(int16_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  for (size_t i = 0; i < sizeof(uint16_t); ++i) {
+    bytes.push_back(size.bytes[i]);
   }
 
-  const char* cstr = name.c_str();
-  for (size_t i = 0; i < length; ++i) {
-    bytes.push_back((std::byte)(cstr[i] & 0xFF));
+  for (size_t i = 0; i < size.value; ++i) {
+    bytes.push_back((std::byte)name.at(i));
   }
 
   return bytes;
@@ -60,9 +117,10 @@ std::vector<std::byte> TagByte::valueToBytes() {
 std::vector<std::byte> TagShort::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int16_t length = littleEndianToShort((std::byte*)&value);
-  for (size_t i = 0; i < sizeof(int16_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  pun16 val(value);
+
+  for (size_t i = 0; i < sizeof(uint16_t); ++i) {
+    bytes.push_back(val.bytes[i]);
   }
 
   return bytes;
@@ -71,9 +129,10 @@ std::vector<std::byte> TagShort::valueToBytes() {
 std::vector<std::byte> TagInt::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int32_t length = littleEndianToInt((std::byte*)&value);
-  for (size_t i = 0; i < sizeof(int32_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  pun32 val(value);
+
+  for (size_t i = 0; i < sizeof(uint32_t); ++i) {
+    bytes.push_back(val.bytes[i]);
   }
 
   return bytes;
@@ -82,9 +141,10 @@ std::vector<std::byte> TagInt::valueToBytes() {
 std::vector<std::byte> TagLong::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int64_t length = littleEndianToLong((std::byte*)&value);
-  for (size_t i = 0; i < sizeof(int64_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  pun64 val(value);
+
+  for (size_t i = 0; i < sizeof(uint64_t); ++i) {
+    bytes.push_back(val.bytes[i]);
   }
 
   return bytes;
@@ -93,9 +153,10 @@ std::vector<std::byte> TagLong::valueToBytes() {
 std::vector<std::byte> TagFloat::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int32_t length = littleEndianToInt((std::byte*)&value);
+  punFloat val(value);
+
   for (size_t i = 0; i < sizeof(float); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+    bytes.push_back(val.bytes[i]);
   }
 
   return bytes;
@@ -104,9 +165,10 @@ std::vector<std::byte> TagFloat::valueToBytes() {
 std::vector<std::byte> TagDouble::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int64_t length = littleEndianToLong((std::byte*)&value);
+  punDouble val(value);
+
   for (size_t i = 0; i < sizeof(double); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+    bytes.push_back(val.bytes[i]);
   }
 
   return bytes;
@@ -115,9 +177,14 @@ std::vector<std::byte> TagDouble::valueToBytes() {
 std::vector<std::byte> TagString::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  const char* cstr = name.c_str();
+  pun16 size(value.length());
+
+  for (size_t i = 0; i < sizeof(uint16_t); ++i) {
+    bytes.push_back(size.bytes[i]);
+  }
+
   for (size_t i = 0; i < value.length(); ++i) {
-    bytes.push_back((std::byte)(cstr[i] & 0xFF));
+    bytes.push_back((std::byte) value.at(i));
   }
 
   return bytes;
@@ -126,10 +193,10 @@ std::vector<std::byte> TagString::valueToBytes() {
 std::vector<std::byte> TagByteArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int32_t size = (int32_t)values.size();
-  int32_t length = littleEndianToInt((std::byte*)&size);
-  for (size_t i = 0; i < sizeof(int32_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  pun32 size(values.size());
+
+  for (size_t i = 0; i < sizeof(uint32_t); ++i) {
+    bytes.push_back(size.bytes[i]);
   }
 
   for (auto value : values) {
@@ -142,16 +209,17 @@ std::vector<std::byte> TagByteArray::valueToBytes() {
 std::vector<std::byte> TagIntArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int32_t size = (int32_t)values.size();
-  int32_t length = littleEndianToInt((std::byte*)&size);
-  for (size_t i = 0; i < sizeof(int32_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  pun32 size(values.size());
+
+  for (size_t i = 0; i < sizeof(uint32_t); ++i) {
+    bytes.push_back(size.bytes[i]);
   }
 
   for (auto value : values) {
-    int32_t length = littleEndianToInt((std::byte*)&size);
-    for (size_t i = 0; i < sizeof(int32_t); ++i) {
-      bytes.push_back((std::byte)((&length)[i] & 0xFF));
+    pun32 val(value);
+
+    for (size_t i = 0; i < sizeof(uint32_t); ++i) {
+      bytes.push_back(val.bytes[i]);
     }
   }
 
@@ -161,16 +229,17 @@ std::vector<std::byte> TagIntArray::valueToBytes() {
 std::vector<std::byte> TagLongArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  int32_t size = (int32_t)values.size();
-  int32_t length = littleEndianToInt((std::byte*)&size);
-  for (size_t i = 0; i < sizeof(int32_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  pun32 size(values.size());
+
+  for (size_t i = 0; i < sizeof(uint32_t); ++i) {
+    bytes.push_back(size.bytes[i]);
   }
 
   for (auto value : values) {
-    int64_t length = littleEndianToInt((std::byte*)&size);
-    for (size_t i = 0; i < sizeof(int64_t); ++i) {
-      bytes.push_back((std::byte)((&length)[i] & 0xFF));
+    pun64 val(value);
+
+    for (size_t i = 0; i < sizeof(uint64_t); ++i) {
+      bytes.push_back(val.bytes[i]);
     }
   }
 
@@ -182,10 +251,10 @@ std::vector<std::byte> TagList::valueToBytes() {
 
   bytes.push_back((std::byte) listType);
 
-  int32_t size = (int32_t)entries.size();
-  int32_t length = littleEndianToInt((std::byte*)&size);
-  for (size_t i = 0; i < sizeof(int32_t); ++i) {
-    bytes.push_back((std::byte)((&length)[i] & 0xFF));
+  pun32 size(entries.size());
+
+  for (size_t i = 0; i < sizeof(uint32_t); ++i) {
+    bytes.push_back(size.bytes[i]);
   }
 
   for (auto tag : entries) {
@@ -199,39 +268,31 @@ std::vector<std::byte> TagList::valueToBytes() {
 std::vector<std::byte> TagCompound::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  bytes.push_back((std::byte) TagType::CompoundStart);
-
   for (auto tag : tags) {
     std::vector<std::byte> tagBytes = tag->toBytes();
     bytes.insert(bytes.end(), tagBytes.begin(), tagBytes.end());
   }
-
-  bytes.push_back((std::byte) TagType::CompoundEnd);
 
   return bytes;
 }
 
 std::vector<std::byte> NamedTag::toBytes() {
   std::vector<std::byte> bytes;
-  bytes.push_back((std::byte)type);
+
+  bytes.push_back((std::byte) type);
+
   std::vector<std::byte> nameBytes = nameToBytes();
   bytes.insert(bytes.end(), nameBytes.begin(), nameBytes.end());
+
   std::vector<std::byte> valueBytes = valueToBytes();
   bytes.insert(bytes.end(), valueBytes.begin(), valueBytes.end());
+
+  // check if tag is a compound and add compound end byte
+  if (TagCompound* tag = dynamic_cast<TagCompound*>(this)) {
+    bytes.push_back((std::byte)TagType::CompoundEnd);
+  }
+
   return bytes;
 };
 
-std::vector<std::byte> TagCompound::toBytes() {
-  std::vector<std::byte> bytes;
-
-  bytes.push_back((std::byte) TagType::CompoundStart);
-
-  std::vector<std::byte> nameBytes = nameToBytes();
-  bytes.insert(bytes.end(), nameBytes.begin(), nameBytes.end());
-  std::vector<std::byte> valueBytes = valueToBytes();
-  bytes.insert(bytes.end(), valueBytes.begin(), valueBytes.end());
-
-  bytes.push_back((std::byte) TagType::CompoundEnd);
-
-  return bytes;
-}
+#pragma endregion

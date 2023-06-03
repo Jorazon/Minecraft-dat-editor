@@ -1,6 +1,7 @@
 #define _CRT_SECURE_NO_WARNINGS
 
 #include <fstream>
+#include <stack>
 
 #include "TagReader.h"
 
@@ -30,12 +31,18 @@ int main(void) {
   
   int indent = 0;
 
+  TagCompound* root = nullptr;
+
+  std::stack<TagCompound*> compounds;
+
   // read file
   while (((int) file.tellg()) < length) {
     // read tag type
     TagType typeByte = (TagType) readByte(&file);
 
     if (typeByte == TagType::CompoundEnd) {
+      root = compounds.top();
+      compounds.pop();
       indent--;
       printIndent(indent);
       printf("}\n");
@@ -57,14 +64,42 @@ int main(void) {
     }
 
     // read type
-    readTag(typeByte, &file);
+    NamedTag* tag = readTag(typeByte, name, &file);
 
-    if (typeByte != TagType::CompoundStart) {
-      printf(",");
+    if (typeByte == TagType::CompoundStart) {
+      if (!compounds.empty()) {
+        compounds.top()->tags.push_back(tag);
+      }
+      compounds.push((TagCompound*) tag);
+    } else {
+      compounds.top()->tags.push_back(tag);
     }
     printf("\n");
   }
 
   file.close();
+
+  std::ofstream outFile("readworld.dat", std::ios::binary);
+
+  TagInt fileVersion("version", 10);
+
+  std::vector<std::byte> bytes = root->toBytes();
+  TagInt fileLength("length", bytes.size());
+
+  std::vector<std::byte> outFileBytes;
+
+  std::vector<std::byte> versionBytes = fileVersion.valueToBytes();
+  outFileBytes.insert(outFileBytes.end(), versionBytes.begin(), versionBytes.end());
+  std::vector<std::byte> lengthBytes = fileLength.valueToBytes();
+  outFileBytes.insert(outFileBytes.end(), lengthBytes.begin(), lengthBytes.end());
+
+  outFileBytes.insert(outFileBytes.end(), bytes.begin(), bytes.end());
+
+  for (auto byte : outFileBytes) {
+    outFile.put((unsigned char) byte);
+  }
+
+  outFile.close();
+
   return 0;
 }
