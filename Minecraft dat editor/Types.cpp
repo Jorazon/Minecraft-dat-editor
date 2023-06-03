@@ -2,13 +2,6 @@
 
 #pragma region Punning
 
-union pun8
-{
-  uint8_t value;
-  std::byte bytes[sizeof(uint8_t)];
-  pun8(uint8_t _Value) : value(_Value) {};
-};
-
 union pun16
 {
   uint16_t value;
