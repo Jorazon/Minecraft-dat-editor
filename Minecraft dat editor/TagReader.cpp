@@ -18,7 +18,7 @@ short readShort(std::ifstream* _File) {
 std::string readString(std::ifstream* _File) {
   short nameLength = readShort(_File);
 
-  char* name = (char*)malloc((nameLength + 1) * sizeof(char));
+  char* name = (char*)malloc(((int)nameLength + 1) * sizeof(char));
 
   if (name == NULL) {
     printf("Failed to allocate memory for the string.\n");

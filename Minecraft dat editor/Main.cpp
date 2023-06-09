@@ -84,7 +84,7 @@ int main(void) {
   TagInt fileVersion("version", 10);
 
   std::vector<std::byte> bytes = root->toBytes();
-  TagInt fileLength("length", bytes.size());
+  TagInt fileLength("length", (int32_t)bytes.size());
 
   std::vector<std::byte> outFileBytes;
 

@@ -88,7 +88,7 @@ std::vector<std::byte> Tag::valueToBytes() {
 std::vector<std::byte> NamedTag::nameToBytes() {
   std::vector<std::byte> bytes;
 
-  pun16 size(name.length());
+  pun16 size((uint16_t)name.length());
 
   for (size_t i = 0; i < sizeof(uint16_t); ++i) {
     bytes.push_back(size.bytes[i]);
@@ -170,7 +170,7 @@ std::vector<std::byte> TagDouble::valueToBytes() {
 std::vector<std::byte> TagString::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  pun16 size(value.length());
+  pun16 size((uint16_t)value.length());
 
   for (size_t i = 0; i < sizeof(uint16_t); ++i) {
     bytes.push_back(size.bytes[i]);
@@ -186,7 +186,7 @@ std::vector<std::byte> TagString::valueToBytes() {
 std::vector<std::byte> TagByteArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  pun32 size(values.size());
+  pun32 size((uint32_t)values.size());
 
   for (size_t i = 0; i < sizeof(uint32_t); ++i) {
     bytes.push_back(size.bytes[i]);
@@ -202,7 +202,7 @@ std::vector<std::byte> TagByteArray::valueToBytes() {
 std::vector<std::byte> TagIntArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  pun32 size(values.size());
+  pun32 size((uint32_t)values.size());
 
   for (size_t i = 0; i < sizeof(uint32_t); ++i) {
     bytes.push_back(size.bytes[i]);
@@ -222,7 +222,7 @@ std::vector<std::byte> TagIntArray::valueToBytes() {
 std::vector<std::byte> TagLongArray::valueToBytes() {
   std::vector<std::byte> bytes;
 
-  pun32 size(values.size());
+  pun32 size((uint32_t)values.size());
 
   for (size_t i = 0; i < sizeof(uint32_t); ++i) {
     bytes.push_back(size.bytes[i]);
@@ -244,7 +244,7 @@ std::vector<std::byte> TagList::valueToBytes() {
 
   bytes.push_back((std::byte) listType);
 
-  pun32 size(entries.size());
+  pun32 size((uint32_t)entries.size());
 
   for (size_t i = 0; i < sizeof(uint32_t); ++i) {
     bytes.push_back(size.bytes[i]);
