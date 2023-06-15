@@ -4,13 +4,13 @@
 #include "TagReader.h"
 
 std::byte readByte(std::ifstream* _File) {
-  std::byte byte[1];
+  std::byte byte[1]{};
   _File->read((char*) byte, 1);
   return *byte;
 }
 
 short readShort(std::ifstream* _File) {
-  std::byte bytes[sizeof(short)];
+  std::byte bytes[sizeof(short)]{};
   _File->read((char*) bytes, sizeof(short));
   return littleEndianToShort(bytes);
 }
@@ -18,7 +18,7 @@ short readShort(std::ifstream* _File) {
 std::string readString(std::ifstream* _File) {
   short nameLength = readShort(_File);
 
-  char* name = (char*)malloc(((int)nameLength + 1) * sizeof(char));
+  char* name = (char*)malloc((static_cast<size_t>(nameLength) + 1) * sizeof(char));
 
   if (name == NULL) {
     printf("Failed to allocate memory for the string.\n");
@@ -39,25 +39,25 @@ std::string readString(std::ifstream* _File) {
 }
 
 int readInt(std::ifstream* _File) {
-  std::byte bytes[sizeof(int)];
+  std::byte bytes[sizeof(int)]{};
   _File->read((char*)bytes, sizeof(int));
   return littleEndianToInt(bytes);
 }
 
 long long readLong(std::ifstream* _File) {
-  std::byte bytes[sizeof(long long)];
+  std::byte bytes[sizeof(long long)]{};
   _File->read((char*)bytes, sizeof(long long));
   return littleEndianToLong(bytes);
 }
 
 float readFloat(std::ifstream* _File) {
-  std::byte bytes[sizeof(float)];
+  std::byte bytes[sizeof(float)]{};
   _File->read((char*)bytes, sizeof(float));
   return littleEndianToFloat(bytes);
 }
 
 double readDouble(std::ifstream* _File) {
-  std::byte bytes[sizeof(double)];
+  std::byte bytes[sizeof(double)]{};
   _File->read((char*)bytes, sizeof(double));
   return littleEndianToDouble(bytes);
 }
@@ -109,7 +109,7 @@ NamedTag* readTag(TagType _Type, std::string _Name, std::ifstream* _File) {
     for (size_t i = 0; i < listLength; ++i) {
       NamedTag* entry = readTag(listTypeByte, "ListItem", _File);
       list->entries.push_back(entry);
-      if (i < listLength - 1) {
+      if (i < static_cast<size_t>(listLength) - 1) {
         printf(".");
       }
     }
